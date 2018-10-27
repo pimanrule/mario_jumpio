@@ -24,7 +24,8 @@ try:
         scoreDisplay = cv2.cvtColor(scoreDisplay, cv2.COLOR_BGR2GRAY)
         scoreDisplay = cv2.threshold(scoreDisplay, 200, 255, cv2.THRESH_BINARY)[1]
 
-        if previousScoreDisplay == None: continue # On first iteration, skip to next loop
+        if previousScoreDisplay == None:
+            previousScoreDisplay = scoreDisplay.copy()
 
         diff = (np.sum(np.abs(np.subtract(scoreDisplay, previousScoreDisplay))))/1000
         print(diff)
