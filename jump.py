@@ -23,15 +23,16 @@ try:
         scoreDisplay = frame[507:587, 1051:1235]
         scoreDisplay = cv2.cvtColor(scoreDisplay, cv2.COLOR_BGR2GRAY)
         scoreDisplay = cv2.threshold(scoreDisplay, 200, 255, cv2.THRESH_BINARY)[1]
-        
-        if previousScoreDisplay != None:
-            diff = (np.sum(np.abs(np.subtract(scoreDisplay, previousScoreDisplay))))/1000
-            print(diff)
-            if diff > 4.7:
-                print("\a")
-                time.sleep(23.2/60)
-                ser.write(b'b')
-        
+
+        if previousScoreDisplay == None: continue # On first iteration, skip to next loop
+
+        diff = (np.sum(np.abs(np.subtract(scoreDisplay, previousScoreDisplay))))/1000
+        print(diff)
+        if diff > 4.7:
+            print("\a")
+            time.sleep(23.2/60)
+            ser.write(b'b')
+
         # Display the frame and filtered score display, each in a separate window
         cv2.imshow('frame', frame)
         cv2.imshow('score display (processed)', scoreDisplay)
