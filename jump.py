@@ -11,21 +11,18 @@ CAPTURE_CARD_HEIGHT = 720
 SERIAL_PORT = "COM6"
 SERIAL_BAUD_RATE = 38400
 
-frequency = 2500  
-duration = 33
-previousScoreDisplay = None
-
 try:
     capture = cv2.VideoCapture(CAPTURE_CARD_INDEX)
     capture.set(3, CAPTURE_CARD_WIDTH)
     capture.set(4, CAPTURE_CARD_HEIGHT)
     ser = serial.Serial(COM_PORT, SERIAL_BAUD_RATE)
+    previousScoreDisplay = None
     while (cv2.waitKey(1) & 0xFF) != ord('q'):
-        _, frame = capture.read()
+        frame = capture.read()[1]
         # Crop the captured frame to just have the score in the bottom-right
         scoreDisplay = frame[507:587, 1051:1235]
         scoreDisplay = cv2.cvtColor(scoreDisplay, cv2.COLOR_BGR2GRAY)
-        _, scoreDisplay = cv2.threshold(scoreDisplay, 200, 255, cv2.THRESH_BINARY)
+        scoreDisplay = cv2.threshold(scoreDisplay, 200, 255, cv2.THRESH_BINARY)[1]
         
         if previousScoreDisplay != None:
             diff = (np.sum(np.abs(np.subtract(scoreDisplay, previousScoreDisplay))))/1000
