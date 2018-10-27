@@ -17,6 +17,8 @@ try:
     capture.set(4, CAPTURE_CARD_HEIGHT)
     ser = serial.Serial(COM_PORT, SERIAL_BAUD_RATE)
     previousScoreDisplay = None
+    jumpAtTime = 0
+
     while (cv2.waitKey(1) & 0xFF) != ord('q'):
         frame = capture.read()[1]
         # Crop the captured frame to just have the score in the bottom-right
@@ -30,14 +32,17 @@ try:
         diff = (np.sum(np.abs(np.subtract(scoreDisplay, previousScoreDisplay))))/1000
         print(diff)
         if diff > 4.7:
-            print("\a")
-            time.sleep(23.2/60)
+            jumpAtTime = time.time() + 23.2/60
+        if time.time() > jumpAtTime
             ser.write(b'b')
+            jumpAtTime = 0
 
         # Display the frame and filtered score display, each in a separate window
         cv2.imshow('frame', frame)
         cv2.imshow('score display (processed)', scoreDisplay)
         previousScoreDisplay = scoreDisplay.copy()
+
+        # Might want to a _brief_ time.sleep here
 
 # When everything done, release the capture
 finally:        
