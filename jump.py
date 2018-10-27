@@ -33,11 +33,7 @@ try:
             if diff > 4.7:
                 print("\a")
                 time.sleep(23.2/60)
-                char = b'b'
-            else:
-                char = b'n'
-        if char != b'n':
-            ser.write(char)
+                ser.write(b'b')
         
         # Display the frame and filtered score display, each in a separate window
         cv2.imshow('frame', frame)
