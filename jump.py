@@ -2,55 +2,51 @@ import numpy as np
 import cv2
 import serial
 import time
-import winsound
-frequency = 2500  
-duration = 33
-prim = None
-cooldown=time.time()
-try:
-	cap = cv2.VideoCapture(2)
-	ser = serial.Serial("COM6", 38400)
-	b = b'n'
-	print(cap.set(3,1280))
-	print(cap.set(4,720))
-	while(True):
-		# Capture frame-by-frame
-		ret, frame = cap.read()
-		s = frame[507:587, 1051:1235]
-		s = cv2.cvtColor(s, cv2.COLOR_BGR2GRAY)
-		#s = cv2.GaussianBlur(s, (9, 9), 0)
-		ret, s = cv2.threshold(s, 200, 255, cv2.THRESH_BINARY)
-		
-		#s = cv2.fastNlMeansDenoising(s)
-		
-		#s = cv2.GaussianBlur(s, (9, 9), 0)
-		if prim != None:
-			
-			diffo = ((np.sum(np.abs(np.subtract(s, prim))))/1000)
-			print(diffo)
-			if diffo > 4.7:# or time.time() - cooldown > (36/60):
-				print("\a")
-				time.sleep(23.2/60)
-				b = b'b'
-				cooldown = time.time()
-			else:
-				b = b'n'
-		if b != b'n':
-			ser.write(b)
-		# Our operations on the frame come here
-		#gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-		cooldown += 1
-		# Display the resulting frame
-		cv2.imshow('frame',frame)
-		cv2.imshow('score',s)
 
-		if cv2.waitKey(1) & 0xFF == ord('q'):
-			break
-		prim = s.copy()
+# Which video input is your capture card?
+CAPTURE_CARD_INDEX = 2
+CAPTURE_CARD_WIDTH = 1280
+CAPTURE_CARD_HEIGHT = 720
+# On which virtual serial port is your microcontroller connected to?
+SERIAL_PORT = "COM6"
+SERIAL_BAUD_RATE = 38400
+
+try:
+    capture = cv2.VideoCapture(CAPTURE_CARD_INDEX)
+    capture.set(3, CAPTURE_CARD_WIDTH)
+    capture.set(4, CAPTURE_CARD_HEIGHT)
+    ser = serial.Serial(COM_PORT, SERIAL_BAUD_RATE)
+    previousScoreDisplay = None
+    jumpAtTime = 0
+
+    while (cv2.waitKey(1) & 0xFF) != ord('q'):
+        frame = capture.read()[1]
+        # Crop the captured frame to just have the score in the bottom-right
+        scoreDisplay = frame[507:587, 1051:1235]
+        scoreDisplay = cv2.cvtColor(scoreDisplay, cv2.COLOR_BGR2GRAY)
+        scoreDisplay = cv2.threshold(scoreDisplay, 200, 255, cv2.THRESH_BINARY)[1]
+
+        if previousScoreDisplay == None:
+            previousScoreDisplay = scoreDisplay.copy()
+
+        diff = (np.sum(np.abs(np.subtract(scoreDisplay, previousScoreDisplay))))/1000
+        print(diff)
+        if diff > 4.7:
+            jumpAtTime = time.time() + 23.2/60
+        if time.time() > jumpAtTime
+            ser.write(b'b')
+            jumpAtTime = 0
+
+        # Display the frame and filtered score display, each in a separate window
+        cv2.imshow('frame', frame)
+        cv2.imshow('score display (processed)', scoreDisplay)
+        previousScoreDisplay = scoreDisplay.copy()
+
+        # Might want to a _brief_ time.sleep here
 
 # When everything done, release the capture
-finally:		
-	print("closing up shop")
-	ser.close()
-	cap.release()
-	cv2.destroyAllWindows()
+finally:        
+    print("closing up shop")
+    ser.close()
+    capture.release()
+    cv2.destroyAllWindows()
